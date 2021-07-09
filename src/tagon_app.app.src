@@ -1,0 +1,3 @@
+{application, tagon_app,
+ [ {vsn, "0.1.0"},
+ {mod, {tagon_app,[]}}]}.

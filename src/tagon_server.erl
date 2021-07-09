@@ -1,10 +1,11 @@
 -module(tagon_server).
--export([init/0, test/0]).
+-export([init/1, test/0]).
+
 
 -record(card, { id, balance=20.00, tagged_on, tagged_location }).
 
 test() ->
-    Server = init(),
+    Server = init([]),
     Server ! { register, { 20.0, 1 } },
     Server ! { register, { 20.0, 2 } },
     Server ! { dump },
@@ -14,9 +15,11 @@ test() ->
     Server ! { dump },
     ok.
 
-init() ->
-    spawn(fun() -> loop(orddict:new()) end).
-
+init(Pid) ->
+    PidSpawn = spawn(fun() -> loop(orddict:new()) end),
+    io:format("Server Pid: ~p~n", [PidSpawn]),
+    link(Pid),
+    {ok, self()}.
 
 process_card_tag(#card{ id=CardId, balance=Balance, tagged_on=true, tagged_location=_ }, _) ->
     #card{id=CardId, balance=Balance, tagged_on=false };

@@ -1,19 +1,16 @@
 -module(tagon_sup).
 -behaviour(supervisor).
--export([start/0, start_link/1, init/1]).
+-export([start_link/0, init/1]).
 
-start() ->
-    spawn(fun() -> supervisor:start_link({ local, ?MODULE }, ?MODULE, _Arg = []) end).
+start_link() ->
+    supervisor:start_link({ local, ?MODULE }, ?MODULE, []).
 
-start_link(Args) ->
-    supervisor:start_link({ local, ?MODULE }, ?MODULE, _Arg= []).
-
-init([]) ->
-    { ok, {{ one_for_one, 3, 10 },
-          [{ tagon_server,
-           {tagon_server, init, [] },
-             permanent,
-             10000,
-             worker,
-             []
-           }]}}.
+init(_Args) ->
+    SupFlags = #{strategy => one_for_one, intensity => 3, period => 10},
+    ChildSpecs = [#{id => tagon_server,
+                    start => {tagon_server, init, [self()]},
+                    restart => permanent,
+                    shutdown => brutal_kill,
+                    type => worker,
+                    modules => [tagon_server]}],
+    {ok, {SupFlags, ChildSpecs}}.
